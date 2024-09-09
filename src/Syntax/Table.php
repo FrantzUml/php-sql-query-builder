@@ -16,17 +16,17 @@ namespace NilPortugues\Sql\QueryBuilder\Syntax;
 class Table
 {
     /**
-     * @var string
+     * @var non-empty-string
      */
     protected $name;
 
     /**
-     * @var string
+     * @var non-empty-string|null
      */
     protected $alias;
 
     /**
-     * @var string
+     * @var non-empty-string|null
      */
     protected $schema;
 
@@ -36,16 +36,13 @@ class Table
     protected $view = false;
 
     /**
-     * @param        $name
-     * @param string $schema
+     * @param string $name
+     * @param string|null $schema
+     * @param string|null $alias
      */
-    public function __construct($name, $schema = null)
+    public function __construct($name, $schema = null, $alias = null)
     {
-        $this->name = $name;
-
-        if (!is_null($schema)) {
-            $this->schema = $schema;
-        }
+        $this->setName($name)->setSchema($schema)->setAlias($alias);
     }
 
     /**
@@ -77,11 +74,20 @@ class Table
     }
 
     /**
-     * @return string
+     * @return non-empty-string
      */
     public function getName()
     {
         return $this->name;
+    }
+
+    private function setName(string $name): self {
+        $name = \trim($name);
+        if ($name === ''){
+            throw new QueryException();
+        }
+        $this->name = $name;
+        return $this;
     }
 
     /**
@@ -104,14 +110,19 @@ class Table
     }
 
     /**
-     * @param string $alias
+     * @param string|null $alias
      *
      * @return $this
      */
     public function setAlias($alias)
     {
-        $this->alias = $alias;
-
+        if ($alias === null){
+            $this->alias = null;
+        }
+        else {
+            $alias = \trim($alias);
+            $this->alias = ($alias === '') ? null : $alias;
+        }
         return $this;
     }
 
@@ -124,15 +135,20 @@ class Table
     }
 
     /**
-     * @param string
+     * @param string|null
      * @param string $schema
      *
      * @return $this
      */
     public function setSchema($schema)
     {
-        $this->schema = $schema;
-
+        if ($schema === null){
+            $this->schema = null;
+        }
+        else {
+            $schema = \trim($schema);
+            $this->schema = ($schema === '') ? null : $schema;
+        }
         return $this;
     }
 }
