@@ -20,7 +20,7 @@ class Column implements QueryPartInterface
     const ALL = '*';
 
     /**
-     * @var Table
+     * @var Table|null
      */
     protected $table;
 
@@ -30,20 +30,20 @@ class Column implements QueryPartInterface
     protected $name;
 
     /**
-     * @var string
+     * @var string|null
      */
     protected $alias;
 
     /**
+     * @internal This class should be instantiated only by {@link SyntaxFactory}.
      * @param string $name
-     * @param string $table
-     * @param string $alias
+     * @param Table|null $table
+     * @param string|null $alias
      */
     public function __construct($name, $table, $alias = '')
     {
-        $this->setName($name);
-        $this->setTable($table);
-        $this->setAlias($alias);
+        $this->setName($name)->setAlias($alias);
+        $this->table = $table;
     }
 
     /**
@@ -69,8 +69,11 @@ class Column implements QueryPartInterface
      */
     public function setName($name)
     {
-        $this->name = (string) $name;
-
+        $name = \trim($name);
+        if ($name === ''){
+            throw new QueryException();
+        }
+        $this->name = $name;
         return $this;
     }
 
@@ -79,24 +82,25 @@ class Column implements QueryPartInterface
      */
     public function getTable()
     {
+        if ($this->table === null){
+            throw new QueryException();
+        }
         return $this->table;
     }
 
     /**
-     * @param string $table
+     * @param Table|null $table
      *
      * @return $this
      */
     public function setTable($table)
     {
-        $newTable = array($table);
-        $this->table = SyntaxFactory::createTable($newTable);
-
+        $this->table = $table;
         return $this;
     }
 
     /**
-     * @return string
+     * @return string|null
      */
     public function getAlias()
     {
@@ -112,18 +116,21 @@ class Column implements QueryPartInterface
      */
     public function setAlias($alias)
     {
-        if (0 == \strlen($alias)) {
+        if ($alias === null){
             $this->alias = null;
-
             return $this;
         }
-
+        else {
+            $alias = \trim($alias);
+            if ($alias === ''){
+                $this->alias = null;
+                return $this;
+            }
+        }
         if ($this->isAll()) {
             throw new QueryException("Can't use alias because column name is ALL (*)");
         }
-
-        $this->alias = (string) $alias;
-
+        $this->alias = $alias;
         return $this;
     }
 
