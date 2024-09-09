@@ -41,7 +41,7 @@ final class SyntaxFactory
             }
         }
 
-        return \array_filter($createdColumns);
+        return $createdColumns; // self::createColumn never retruns null
     }
 
     /**
@@ -64,30 +64,28 @@ final class SyntaxFactory
             $columnAlias = null;
         }
 
-        return new Column($columnName, (string) $table, $columnAlias);
+        return new Column($columnName, $table, $columnAlias); // Change in Column constructor
     }
 
     /**
      * Creates a Table object.
      *
-     * @param string[] $table
+     * @param string|array $table
      *
      * @return Table
      */
     public static function createTable($table)
     {
+        if (\is_array($table)){
+            $name = (string)\current($table);
+            $alias = \key($table);
+            $alias = \is_string($alias) ? $alias : null;
+        }
+        else {
+            $name = $table;
+            $alias = null;
+        }
         $tableName = $table;
-        if (\is_array($table)) {
-            $tableName = \current($table);
-            $tableAlias = \key($table);
-        }
-
-        $newTable = new Table($tableName);
-
-        if (isset($tableAlias) && !is_numeric($tableAlias)) {
-            $newTable->setAlias($tableAlias);
-        }
-
-        return $newTable;
+        return new Table($name, null, $alias);
     }
 }
